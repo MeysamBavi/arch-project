@@ -1,0 +1,172 @@
+#0:
+addi $v0, $zero, 0x0005
+I-Type
+op: 001000
+rs: 00000
+rt: 00010
+constant or address: 0000000000000101
+
+#1:
+addi $v1, $zero, 0x000C
+I-Type
+op: 001000
+rs: 00000
+rt: 00011
+constant or address: 0000000000001100
+
+#2:
+addi $a3, $v1, 0xFFF7
+I-Type
+op: 001000
+rs: 00011
+rt: 00111
+constant or address: 1111111111110111
+
+#3:
+or $a0, $a3, $v0
+R-Type
+op: 000000
+rs: 00111
+rt: 00010
+rd: 00100
+shamt: 00000
+funct: 100101
+
+#4:
+and $a1, $v1, $a0
+R-Type
+op: 000000
+rs: 00011
+rt: 00100
+rd: 00101
+shamt: 00000
+funct: 100100
+
+#5:
+add $a1, $a1, $a0
+R-Type
+op: 000000
+rs: 00101
+rt: 00100
+rd: 00101
+shamt: 00000
+funct: 100000
+
+#6:
+beq $a1, $a3, 0x000A
+I-Type
+op: 000100
+rs: 00101
+rt: 00111
+constant or address: 0000000000001010
+
+#7:
+slt $a0, $v1, $a0
+R-Type
+op: 000000
+rs: 00011
+rt: 00100
+rd: 00100
+shamt: 00000
+funct: 101010
+
+#8:
+beq $a0, $zero, 0x0001
+I-Type
+op: 000100
+rs: 00100
+rt: 00000
+constant or address: 0000000000000001
+
+#9:
+addi $a1, $zero, 0x0000
+I-Type
+op: 001000
+rs: 00000
+rt: 00101
+constant or address: 0000000000000000
+
+#10:
+slt $a0, $a3, $v0
+R-Type
+op: 000000
+rs: 00111
+rt: 00010
+rd: 00100
+shamt: 00000
+funct: 101010
+
+#11:
+add $a3, $a0, $a1
+R-Type
+op: 000000
+rs: 00100
+rt: 00101
+rd: 00111
+shamt: 00000
+funct: 100000
+
+#12:
+sub $a3, $a3, $v0
+R-Type
+op: 000000
+rs: 00111
+rt: 00010
+rd: 00111
+shamt: 00000
+funct: 100010
+
+#13:
+sw $a3, 0x0044, $v1
+I-Type
+op: 101011
+rs: 00011
+rt: 00111
+constant or address: 0000000001000100
+
+#14:
+lw $v0, 0x0050, $zero
+I-Type
+op: 100011
+rs: 00000
+rt: 00010
+constant or address: 0000000001010000
+
+#15:
+j 0x0011
+J-Type
+op: 000010
+constant or address: 00000000000000000000010001
+
+#16:
+addi $v0, $zero, 0x0001
+I-Type
+op: 001000
+rs: 00000
+rt: 00010
+constant or address: 0000000000000001
+
+#17:
+lw $t1, 0x0050, $zero
+I-Type
+op: 100011
+rs: 00000
+rt: 01001
+constant or address: 0000000001010000
+
+#18:
+sw $t1, 0x0058, $zero
+I-Type
+op: 101011
+rs: 00000
+rt: 01001
+constant or address: 0000000001011000
+
+#19:
+sw $v0, 0x0054, $zero
+I-Type
+op: 101011
+rs: 00000
+rt: 00010
+constant or address: 0000000001010100
+
