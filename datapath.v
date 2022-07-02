@@ -1,0 +1,134 @@
+module Datapath (
+    input clk,
+    input reset,
+    output[31:0] pc,
+    input [31:0] instr,
+    output[31:0] aluout,
+    output[31:0] write_data,
+    output mem_write,
+    input [31:0] readdata);
+
+    // Fetch
+
+    wire [31:0] nextPC;
+    wire pc_en;
+    PCReg pcr(clk, pc_en, nextPC, pc);
+
+    wire if_id_en;
+    wire if_id_flush;
+    wire [31:0] instrD;
+    wire [31:0] pc_plus4;
+    wire [31:0] pc_plus4D;
+    assign pc_plus4 = pc + 4;
+    IFIDReg if_id_reg(clk, if_id_en, if_id_flush, isntr, instrD, pc_plus4, pc_plus4D);
+
+    // Decode
+    wire [5:0] opcode;
+    wire [5:0] funct;
+    wire zero;
+
+    assign opcode = instrD[31:26];
+    assign funct = instrD[5:0];
+
+    wire MemToRegD;
+    wire RegWriteD;
+    wire MemWriteD;
+    wire PcSrcD;
+    wire ALUSrcD;
+    wire RegDstD;
+    wire JumpD;
+    wire [2:0] ALUControlD;
+    Controller c(opcode, funct, zero, MemToRegD, RegWriteD, PcSrcD, ALUSrcD, RegDstD, RegWriteD, JumpD, ALUControlD);
+
+    wire [31:0] branchOrNormalPC;
+    wire [31:0] PCBranchD;
+    wire [31:0] JumpPC;
+    MUX2to1 #(32) branch_pc_mux(pc_plus4, PCBranchD, PcSrcD, branchOrNormalPC);
+    MUX2to1 #(32) next_pc_mux(branchOrNormalPC, JumpPC, JumpD, nextPC);
+
+    wire [4:0] write_reg;
+    wire [31:0] resultW;
+    wire [31:0] Rs_data;
+    wire [31:0] Rt_data;
+    wire RegWriteW;
+    RegFile rf(clk, RegWriteW, instrD[25:21], instrD[20:16], write_reg, resultW, Rs_data, Rt_data);
+
+    assign zero = Rs_data == Rt_data;
+
+    wire [31:0] immediateD;
+    SignExt sn(instrD[15:0], immediateD);
+    assign PCBranchD = pc_plus4D + immediateD;
+
+
+    // Execute
+
+    wire id_ex_flush;
+    wire [4:0] Rs_a_E;
+    wire [4:0] Rt_a_E;
+    wire [4:0] Rd_a_E;
+    wire [31:0] Rs_data_E;
+    wire [31:0] Rt_data_E;
+    wire [31:0] immediateE;
+    wire ALUSrcE;
+    wire [2:0] ALUControlE;
+    wire RegDstE;
+    wire MemWriteE;
+    wire MemToRegE;
+    wire RegWriteE;
+    IDEXReg id_ex_reg(clk, id_ex_flush, instrD[25:21], Rs_a_E, instrD[20:16], Rt_a_E, instrD[20:16], Rd_a_E,
+                      Rs_data, Rs_data_E, Rt_data, Rt_data_E, immediateD, immediateE,
+                      ALUSrcD, ALUSrcE, ALUControlD, ALUControlE, RegDstD, RegDstE,
+                      MemWriteD, MemWriteE, MemToRegD, MemToRegE, RegWriteD, RegWriteE);
+
+    
+    wire [4:0] write_reg_E;
+    MUX2to1 #(5) wre(Rd_a_E, Rt_a_E, RegDstE, write_reg_E);
+
+
+    wire [31:0] aluoutM;
+
+    wire [1:0] forwardAE;
+    wire [31:0] SrcAE;
+    MUX3to1 fa(Rs_data_E, resultW, aluoutM, forwardAE, SrcAE);
+
+    wire [1:0] forwardBE;
+    wire [31:0] WriteDataE;
+    MUX3to1 fb(Rt_data_E, resultW, aluoutM, forwardBE, WriteDataE);
+
+    wire [31:0] SrcBE;
+    MUX2to1 #(32) as(WriteDataE, immediateE, ALUSrcE, SrcBE);
+
+    wire [31:0] aluoutE;
+    wire zeroE;
+    ALU alu(SrcAE, SrcBE, ALUControlE, aluoutE, zeroE);
+
+    // Memory
+
+    wire ex_mem_flush;
+    wire [31:0] WriteDataM;
+    wire [4:0] write_reg_M;
+    wire MemWriteM;
+    wire MemToRegM;
+    wire RegWriteM;
+    EXMEMReg ex_mem_reg(clk, ex_mem_flush, aluoutE, aluoutM, WriteDataE, WriteDataM,
+                        write_reg_E, write_reg_M, MemWriteE, MemWriteM, MemToRegE, MemToRegM,
+                        RegWriteE, RegWriteM);
+
+
+    assign aluout = aluoutM;
+    assign write_data = WriteDataM;
+    assign mem_write = MemWriteE;
+
+    // Write Back
+
+    wire mem_wb_flush;
+    wire aluoutW;
+    wire [31:0] ReadDataW;
+    wire [4:0] write_reg_W;
+    wire MemToRegW;
+    MEMWBReg mem_wb_reg(clk, mem_wb_flush, aluoutM, aluoutW, readdata, ReadDataW, write_reg_M, write_reg_W,
+                        MemToRegM, MemToRegW, RegWriteM, RegWriteW);
+
+    MUX2to1 #(32) rwm(aluoutW, ReadDataW, MemToRegW, resultW);
+    
+endmodule
