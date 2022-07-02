@@ -1,7 +1,8 @@
 module PCReg (
     input clk,
-    input nextPC,
-    output pc
+    input en,
+    input [31:0] nextPC,
+    output [31:0] pc
 );
 
     reg [31:0] r;
@@ -9,7 +10,9 @@ module PCReg (
     assign pc = r;
 
     always @(posedge clk) begin
-        r <= nextPC;
+        if (en) begin
+            r <= nextPC; 
+        end
     end
     
 endmodule
