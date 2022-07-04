@@ -124,9 +124,11 @@ module Datapath (
                         RegWriteE, RegWriteM);
 
 
+    wire LoadStore;
+    
     assign aluout = aluoutM;
-    assign write_data = WriteDataM;
-    assign mem_write = MemWriteE;
+    assign write_data = LoadStore ? resultW : WriteDataM;
+    assign mem_write = MemWriteM;
 
     // Write Back
 
@@ -143,8 +145,8 @@ module Datapath (
     wire StallF;
     wire StallD;
     HazardUnit hu(Rs_a_D, Rt_a_D, Rs_a_E, Rt_a_E, write_reg_E, write_reg_M, write_reg_W,
-                  BranchD, RegWriteE, MemToRegE, RegWriteM, MemToRegM, RegWriteW,
-                  forwardAE, forwardBE, StallF, StallD, id_ex_flush);
+                  BranchD, RegWriteE, MemToRegE, RegWriteM, MemToRegM, MemWriteM, RegWriteW, MemToRegW,
+                  forwardAE, forwardBE, StallF, StallD, id_ex_flush, LoadStore);
     
     assign pc_en = ~StallF;
     assign if_id_en = ~StallD;

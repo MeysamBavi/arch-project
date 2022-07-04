@@ -11,13 +11,16 @@ module HazardUnit (
     input ex_MemToReg,
     input mem_RegWrite,
     input mem_MemToReg,
+    input mem_MemWrite,
     input wb_RegWrite,
+    input wb_MemToReg,
 
     output [1:0] ex_forward_a,
     output [1:0] ex_forward_b,
     output StallF,
     output StallD,
-    output FlushE
+    output FlushE,
+    output LoadStore
     );
     
     // forwarding
@@ -38,6 +41,8 @@ module HazardUnit (
     assign ex_forward_b =   ex_type1_b ? 2'b10 :
                             ex_type2_b ? 2'b01 : 2'b00;
 
+    assign LoadStore = mem_MemWrite && wb_MemToReg && (mem_rd_a != 0 && mem_rd_a == wb_rd_a);
+
 
     // stall
 
@@ -51,7 +56,7 @@ module HazardUnit (
     assign branch_data_hazard = rs_branch_data_hazard || rt_branch_data_hazard;
 
     wire load_use;
-    assign load_use = ex_MemToReg && ((id_rs_a != 0 && id_rs_a == ex_rd_a) || (id_rt_a != 0 && id_rt_a == ex_rd_a));
+    assign load_use = ex_MemToReg && !LoadStore && ((id_rs_a != 0 && id_rs_a == ex_rd_a) || (id_rt_a != 0 && id_rt_a == ex_rd_a));
 
     assign StallF = load_use || branch_data_hazard;
     assign StallD = StallF;
