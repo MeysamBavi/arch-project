@@ -1,5 +1,6 @@
 module PCReg (
     input clk,
+    input reset,
     input en,
     input [31:0] nextPC,
     output [31:0] pc
@@ -10,9 +11,12 @@ module PCReg (
     assign pc = r;
 
     always @(posedge clk) begin
-        if (en) begin
+        if (reset) begin
+            r <= 0;
+        end else if (en) begin
             r <= nextPC; 
         end
+        $display("PC: %d", pc);
     end
     
 endmodule

@@ -15,11 +15,17 @@ module RegFile (
     assign read_data1 = (read_a1 == 0) ? 0 : rf[read_a1];
     assign read_data2 = (read_a2 == 0) ? 0 : rf[read_a2];
 
+    integer i;
 
     always @(negedge clk) begin
         if (write_en) begin
             rf[write_a] <= write_data;
         end
+
+        for (i = 0; i < 32; i = i + 1) begin
+            $display("R%d: %d", i, rf[i]);
+        end
+        $display("------");
     end
 
 

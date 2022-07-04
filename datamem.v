@@ -6,11 +6,11 @@ module DataMem(
 
   reg [31:0] RAM[63:0];
 
-  assign data = RAM[a[31:2]]; // word aligend
+  assign data = RAM[a[7:2]]; // word aligend
 
   always @(posedge clk) begin
     if (write_en) begin
-        RAM[a[31:2]] <= write_data;
+        RAM[a[7:2]] <= write_data;
     end
   end
 endmodule

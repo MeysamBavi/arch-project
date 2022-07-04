@@ -3,16 +3,16 @@ module Datapath (
     input reset,
     output[31:0] pc,
     input [31:0] instr,
+    output mem_write,
     output[31:0] aluout,
     output[31:0] write_data,
-    output mem_write,
     input [31:0] readdata);
 
     // Fetch
 
     wire [31:0] nextPC;
     wire pc_en;
-    PCReg pcr(clk, pc_en, nextPC, pc);
+    PCReg pcr(clk, reset, pc_en, nextPC, pc);
 
     wire if_id_en;
     wire if_id_flush;
@@ -125,7 +125,7 @@ module Datapath (
 
 
     wire LoadStore;
-    
+
     assign aluout = aluoutM;
     assign write_data = LoadStore ? resultW : WriteDataM;
     assign mem_write = MemWriteM;

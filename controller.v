@@ -16,7 +16,7 @@ module Controller (
     wire [1:0] aluop;
 
     maindec md(opcode, MemToReg, MemWrite, Branch, ALUSrc, RegDst, RegWrite, Jump, aluop);
-    aludc ad(funct, aluop, alucontrol);
+    aludec ad(funct, aluop, alucontrol);
 
     assign PcSrc = Branch & zero;
     
