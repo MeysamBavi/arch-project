@@ -6,7 +6,8 @@ module InstMem(
   reg [31:0] RAM[63:0];
 
   initial begin
-      $readmemh("memfile.dat", RAM);
+    #1;
+    $readmemh("memfile.dat", RAM);
   end
 
   assign data = RAM[a[7:2]]; // word aligned
