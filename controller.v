@@ -8,16 +8,16 @@ module Controller (
     output ALUSrc,
     output RegDst,
     output RegWrite,
+    output Branch,
     output Jump,
     output [2:0] alucontrol
 );
 
-    wire branch;
     wire [1:0] aluop;
 
-    maindec md(opcode, MemToReg, MemWrite, branch, ALUSrc, RegDst, RegWrite, Jump, aluop);
+    maindec md(opcode, MemToReg, MemWrite, Branch, ALUSrc, RegDst, RegWrite, Jump, aluop);
     aludc ad(funct, aluop, alucontrol);
 
-    assign PcSrc = branch & zero;
+    assign PcSrc = Branch & zero;
     
 endmodule

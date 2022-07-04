@@ -36,9 +36,10 @@ module Datapath (
     wire PcSrcD;
     wire ALUSrcD;
     wire RegDstD;
+    wire BranchD;
     wire JumpD;
     wire [2:0] ALUControlD;
-    Controller c(opcode, funct, zero, MemToRegD, RegWriteD, PcSrcD, ALUSrcD, RegDstD, RegWriteD, JumpD, ALUControlD);
+    Controller c(opcode, funct, zero, MemToRegD, MemWriteD, PcSrcD, ALUSrcD, RegDstD, RegWriteD, BranchD, JumpD, ALUControlD);
 
     wire [31:0] branchOrNormalPC;
     wire [31:0] PCBranchD;
@@ -46,19 +47,28 @@ module Datapath (
     MUX2to1 #(32) branch_pc_mux(pc_plus4, PCBranchD, PcSrcD, branchOrNormalPC);
     MUX2to1 #(32) next_pc_mux(branchOrNormalPC, JumpPC, JumpD, nextPC);
 
-    wire [4:0] write_reg;
+    wire [4:0] write_reg_W;
     wire [31:0] resultW;
     wire [31:0] Rs_data;
     wire [31:0] Rt_data;
     wire RegWriteW;
-    RegFile rf(clk, RegWriteW, instrD[25:21], instrD[20:16], write_reg, resultW, Rs_data, Rt_data);
+
+    wire [4:0] Rs_a_D;
+    wire [4:0] Rt_a_D;
+    wire [4:0] Rd_a_D;
+
+    assign Rs_a_D = instrD[25:21];
+    assign Rt_a_D = instrD[20:16];
+    assign Rd_a_D = instrD[15:11];
+
+    RegFile rf(clk, RegWriteW, Rs_a_D, Rt_a_D, write_reg_W, resultW, Rs_data, Rt_data);
 
     assign zero = Rs_data == Rt_data;
 
     wire [31:0] immediateD;
     SignExt sn(instrD[15:0], immediateD);
-    assign PCBranchD = pc_plus4D + immediateD;
-
+    assign PCBranchD = pc_plus4D + (immediateD << 2);
+    assign JumpPC = {pc_plus4D[31:28], instrD[25:0], 2'b00};
 
     // Execute
 
@@ -75,7 +85,7 @@ module Datapath (
     wire MemWriteE;
     wire MemToRegE;
     wire RegWriteE;
-    IDEXReg id_ex_reg(clk, id_ex_flush, instrD[25:21], Rs_a_E, instrD[20:16], Rt_a_E, instrD[20:16], Rd_a_E,
+    IDEXReg id_ex_reg(clk, id_ex_flush, Rs_a_D, Rs_a_E, Rt_a_D, Rt_a_E, Rd_a_D, Rd_a_E,
                       Rs_data, Rs_data_E, Rt_data, Rt_data_E, immediateD, immediateE,
                       ALUSrcD, ALUSrcE, ALUControlD, ALUControlE, RegDstD, RegDstE,
                       MemWriteD, MemWriteE, MemToRegD, MemToRegE, RegWriteD, RegWriteE);
@@ -104,13 +114,12 @@ module Datapath (
 
     // Memory
 
-    wire ex_mem_flush;
     wire [31:0] WriteDataM;
     wire [4:0] write_reg_M;
     wire MemWriteM;
     wire MemToRegM;
     wire RegWriteM;
-    EXMEMReg ex_mem_reg(clk, ex_mem_flush, aluoutE, aluoutM, WriteDataE, WriteDataM,
+    EXMEMReg ex_mem_reg(clk, 1'b0, aluoutE, aluoutM, WriteDataE, WriteDataM,
                         write_reg_E, write_reg_M, MemWriteE, MemWriteM, MemToRegE, MemToRegM,
                         RegWriteE, RegWriteM);
 
@@ -121,14 +130,25 @@ module Datapath (
 
     // Write Back
 
-    wire mem_wb_flush;
     wire aluoutW;
     wire [31:0] ReadDataW;
-    wire [4:0] write_reg_W;
     wire MemToRegW;
-    MEMWBReg mem_wb_reg(clk, mem_wb_flush, aluoutM, aluoutW, readdata, ReadDataW, write_reg_M, write_reg_W,
+    MEMWBReg mem_wb_reg(clk, 1'b0, aluoutM, aluoutW, readdata, ReadDataW, write_reg_M, write_reg_W,
                         MemToRegM, MemToRegW, RegWriteM, RegWriteW);
 
     MUX2to1 #(32) rwm(aluoutW, ReadDataW, MemToRegW, resultW);
+
+    // hazard unit
+
+    wire StallF;
+    wire StallD;
+    HazardUnit hu(Rs_a_D, Rt_a_D, Rs_a_E, Rt_a_E, write_reg_E, write_reg_M, write_reg_W,
+                  BranchD, RegWriteE, MemToRegE, RegWriteM, MemToRegM, RegWriteW,
+                  forwardAE, forwardBE, StallF, StallD, id_ex_flush);
     
+    assign pc_en = ~StallF;
+    assign if_id_en = ~StallD;
+
+    assign if_id_flush = JumpD | PcSrcD;
+
 endmodule
