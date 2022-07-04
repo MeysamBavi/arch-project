@@ -1,5 +1,6 @@
 module IDEXReg (
     input clk,
+    input reset,
     input bubble,
 
     input [4:0] Rs_a,
@@ -40,7 +41,7 @@ module IDEXReg (
     output reg RegWrite_out);
 
     always @(posedge clk) begin
-        if (bubble) begin
+        if (reset | bubble) begin
             Rs_a_out <= 0;
             Rt_a_out <= 0;
             Rd_a_out <= 0;

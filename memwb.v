@@ -1,5 +1,6 @@
 module MEMWBReg (
     input clk,
+    input reset,
     input bubble,
 
     input [31:0] alu_res,
@@ -19,7 +20,7 @@ module MEMWBReg (
     output reg RegWrite_out);
 
     always @(posedge clk) begin
-        if (bubble) begin
+        if (reset | bubble) begin
             alu_res_out <= 0;
             mem_read_out <= 0;
             write_reg_out <= 0;

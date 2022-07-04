@@ -20,7 +20,7 @@ module Datapath (
     wire [31:0] pc_plus4;
     wire [31:0] pc_plus4D;
     assign pc_plus4 = pc + 4;
-    IFIDReg if_id_reg(clk, if_id_en, if_id_flush, isntr, instrD, pc_plus4, pc_plus4D);
+    IFIDReg if_id_reg(clk, reset, if_id_en, if_id_flush, instr, instrD, pc_plus4, pc_plus4D);
 
     // Decode
     wire [5:0] opcode;
@@ -85,7 +85,7 @@ module Datapath (
     wire MemWriteE;
     wire MemToRegE;
     wire RegWriteE;
-    IDEXReg id_ex_reg(clk, id_ex_flush, Rs_a_D, Rs_a_E, Rt_a_D, Rt_a_E, Rd_a_D, Rd_a_E,
+    IDEXReg id_ex_reg(clk, reset, id_ex_flush, Rs_a_D, Rs_a_E, Rt_a_D, Rt_a_E, Rd_a_D, Rd_a_E,
                       Rs_data, Rs_data_E, Rt_data, Rt_data_E, immediateD, immediateE,
                       ALUSrcD, ALUSrcE, ALUControlD, ALUControlE, RegDstD, RegDstE,
                       MemWriteD, MemWriteE, MemToRegD, MemToRegE, RegWriteD, RegWriteE);
@@ -119,7 +119,7 @@ module Datapath (
     wire MemWriteM;
     wire MemToRegM;
     wire RegWriteM;
-    EXMEMReg ex_mem_reg(clk, 1'b0, aluoutE, aluoutM, WriteDataE, WriteDataM,
+    EXMEMReg ex_mem_reg(clk, reset, 1'b0, aluoutE, aluoutM, WriteDataE, WriteDataM,
                         write_reg_E, write_reg_M, MemWriteE, MemWriteM, MemToRegE, MemToRegM,
                         RegWriteE, RegWriteM);
 
@@ -132,10 +132,10 @@ module Datapath (
 
     // Write Back
 
-    wire aluoutW;
+    wire [31:0] aluoutW;
     wire [31:0] ReadDataW;
     wire MemToRegW;
-    MEMWBReg mem_wb_reg(clk, 1'b0, aluoutM, aluoutW, readdata, ReadDataW, write_reg_M, write_reg_W,
+    MEMWBReg mem_wb_reg(clk, reset, 1'b0, aluoutM, aluoutW, readdata, ReadDataW, write_reg_M, write_reg_W,
                         MemToRegM, MemToRegW, RegWriteM, RegWriteW);
 
     MUX2to1 #(32) rwm(aluoutW, ReadDataW, MemToRegW, resultW);
@@ -152,5 +152,13 @@ module Datapath (
     assign if_id_en = ~StallD;
 
     assign if_id_flush = JumpD | PcSrcD;
+
+    
+    always @(posedge clk) begin
+        #1;
+        $display("instr: %h", instr);
+        $display("instrD: %h", instrD);
+        $display("controls: %b", {MemToRegD, RegWriteD, MemWriteD, PcSrcD, ALUSrcD, RegDstD, BranchD, JumpD, ALUControlD});
+    end
 
 endmodule

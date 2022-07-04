@@ -1,5 +1,6 @@
 module IFIDReg (
     input clk,
+    input reset,
     input en,
     input flush,
     input [31:0] inst_in,
@@ -8,9 +9,9 @@ module IFIDReg (
     output reg [31:0] pcplus4_out);
 
     always @(posedge clk) begin
-        if (en && flush) begin
+        if (reset || (en && flush)) begin
             inst_out <= 0;
-            pcplus4_out <= 0; 
+            pcplus4_out <= 0;
         end else if (en) begin
             inst_out <= inst_in;
             pcplus4_out <= pcplus4_out;
