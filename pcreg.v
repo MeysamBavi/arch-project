@@ -16,7 +16,6 @@ module PCReg (
         end else if (en) begin
             r <= nextPC; 
         end
-        $display("PC: %d", pc);
     end
     
 endmodule

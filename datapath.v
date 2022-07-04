@@ -92,7 +92,7 @@ module Datapath (
 
     
     wire [4:0] write_reg_E;
-    MUX2to1 #(5) wre(Rd_a_E, Rt_a_E, RegDstE, write_reg_E);
+    MUX2to1 #(5) wre(Rt_a_E, Rd_a_E, RegDstE, write_reg_E);
 
 
     wire [31:0] aluoutM;

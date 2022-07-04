@@ -20,12 +20,14 @@ module RegFile (
     always @(negedge clk) begin
         if (write_en) begin
             rf[write_a] <= write_data;
+            #1;
+            $display("R%d: %d", write_a, rf[write_a]);
         end
 
-        for (i = 0; i < 32; i = i + 1) begin
-            $display("R%d: %d", i, rf[i]);
-        end
-        $display("------");
+        // for (i = 0; i < 32; i = i + 1) begin
+        //     $display("R%d: %d", i, rf[i]);
+        // end
+        // $display("------");
     end
 
 
