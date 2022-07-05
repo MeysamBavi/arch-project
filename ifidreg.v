@@ -14,7 +14,7 @@ module IFIDReg (
             pcplus4_out <= 0;
         end else if (en) begin
             inst_out <= inst_in;
-            pcplus4_out <= pcplus4_out;
+            pcplus4_out <= pcplus4_in;
         end
     end
 

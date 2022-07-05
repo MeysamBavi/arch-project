@@ -52,6 +52,8 @@ module Datapath (
     wire [31:0] Rs_data;
     wire [31:0] Rt_data;
     wire RegWriteW;
+    wire valid_rs;
+    wire valid_rt;
 
     wire [4:0] Rs_a_D;
     wire [4:0] Rt_a_D;
@@ -61,9 +63,9 @@ module Datapath (
     assign Rt_a_D = instrD[20:16];
     assign Rd_a_D = instrD[15:11];
 
-    RegFile rf(clk, RegWriteW, Rs_a_D, Rt_a_D, write_reg_W, resultW, Rs_data, Rt_data);
+    RegFile rf(clk, RegWriteW, Rs_a_D, Rt_a_D, write_reg_W, resultW, Rs_data, Rt_data, valid_rs, valid_rt);
 
-    assign zero = Rs_data == Rt_data;
+    assign zero = valid_rs && valid_rt && (Rs_data == Rt_data);
 
     wire [31:0] immediateD;
     SignExt sn(instrD[15:0], immediateD);
@@ -145,7 +147,7 @@ module Datapath (
     wire StallF;
     wire StallD;
     HazardUnit hu(Rs_a_D, Rt_a_D, Rs_a_E, Rt_a_E, write_reg_E, write_reg_M, write_reg_W,
-                  BranchD, RegWriteE, MemToRegE, RegWriteM, MemToRegM, MemWriteM, RegWriteW, MemToRegW,
+                  BranchD, MemWriteD, RegWriteE, MemToRegE, RegWriteM, MemToRegM, MemWriteM, RegWriteW, MemToRegW,
                   forwardAE, forwardBE, StallF, StallD, id_ex_flush, LoadStore);
     
     assign pc_en = ~StallF;
@@ -156,8 +158,6 @@ module Datapath (
     
     always @(posedge clk) begin
         #1;
-        $display("instr: %h", instr);
-        $display("instrD: %h", instrD);
         $display("controls: %b", {MemToRegD, RegWriteD, MemWriteD, PcSrcD, ALUSrcD, RegDstD, BranchD, JumpD, ALUControlD});
     end
 

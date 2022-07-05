@@ -7,6 +7,7 @@ module HazardUnit (
     input [4:0] mem_rd_a,
     input [4:0] wb_rd_a,
     input id_branch,
+    input id_MemWrite,
     input ex_RegWrite,
     input ex_MemToReg,
     input mem_RegWrite,
@@ -56,7 +57,10 @@ module HazardUnit (
     assign branch_data_hazard = rs_branch_data_hazard || rt_branch_data_hazard;
 
     wire load_use;
-    assign load_use = ex_MemToReg && !LoadStore && ((id_rs_a != 0 && id_rs_a == ex_rd_a) || (id_rt_a != 0 && id_rt_a == ex_rd_a));
+    wire potentialLoadStore;
+    
+    assign potentialLoadStore = id_MemWrite && ex_MemToReg && (id_rt_a != 0 && id_rt_a == ex_rd_a);
+    assign load_use = ex_MemToReg && !potentialLoadStore && ((id_rs_a != 0 && id_rs_a == ex_rd_a) || (id_rt_a != 0 && id_rt_a == ex_rd_a));
 
     assign StallF = load_use || branch_data_hazard;
     assign StallD = StallF;
