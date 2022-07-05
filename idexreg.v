@@ -38,7 +38,10 @@ module IDEXReg (
     output reg MemToReg_out,
 
     input RegWrite,
-    output reg RegWrite_out);
+    output reg RegWrite_out,
+    
+    input [1:0] LoadByte,
+    output reg [1:0] LoadByte_out);
 
     always @(posedge clk) begin
         if (reset | bubble) begin
@@ -55,6 +58,7 @@ module IDEXReg (
             MemWrite_out <= 0;
             MemToReg_out <= 0;
             RegWrite_out <= 0;
+            LoadByte_out <= 0;
 
         end else begin
             Rs_a_out <= Rs_a;
@@ -70,6 +74,7 @@ module IDEXReg (
             MemWrite_out <= MemWrite;
             MemToReg_out <= MemToReg;
             RegWrite_out <= RegWrite;
+            LoadByte_out <= LoadByte;
         end
     end
 

@@ -31,7 +31,7 @@ module maindec(input  [5:0] op,
 
   assign {regwrite, regdst, alusrc, branch, memwrite,
           memtoreg, jump, aluop} = op == 6'b000000 ? 9'b110000010 :
-                                   op == 6'b100011 ? 9'b101001000 :
+                                   op == 6'b100011 || op == 6'b100000 || op == 6'b100100 ? 9'b101001000 : // lw or lb or lbu
                                    op == 6'b101011 ? 9'b001010000 :
                                    op == 6'b000100 ? 9'b000100001 :
                                    op == 6'b001000 ? 9'b101000000 :

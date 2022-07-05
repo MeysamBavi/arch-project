@@ -10,7 +10,8 @@ module Controller (
     output RegWrite,
     output Branch,
     output Jump,
-    output [2:0] alucontrol
+    output [2:0] alucontrol,
+    output [1:0] LoadByte
 );
 
     wire [1:0] aluop;
@@ -19,5 +20,9 @@ module Controller (
     aludec ad(funct, aluop, alucontrol);
 
     assign PcSrc = Branch & zero;
+
+    assign LoadByte = opcode == 6'b100000 ? 2'b01 :
+                      opcode == 6'b100100 ? 2'b10 :
+                      2'b00;
     
 endmodule

@@ -39,7 +39,8 @@ module Datapath (
     wire BranchD;
     wire JumpD;
     wire [2:0] ALUControlD;
-    Controller c(opcode, funct, zero, MemToRegD, MemWriteD, PcSrcD, ALUSrcD, RegDstD, RegWriteD, BranchD, JumpD, ALUControlD);
+    wire [1:0] LoadByteD;
+    Controller c(opcode, funct, zero, MemToRegD, MemWriteD, PcSrcD, ALUSrcD, RegDstD, RegWriteD, BranchD, JumpD, ALUControlD, LoadByteD);
 
     wire [31:0] branchOrNormalPC;
     wire [31:0] PCBranchD;
@@ -83,6 +84,7 @@ module Datapath (
     wire [31:0] immediateE;
     wire ALUSrcE;
     wire [2:0] ALUControlE;
+    wire [1:0] LoadByteE;
     wire RegDstE;
     wire MemWriteE;
     wire MemToRegE;
@@ -90,7 +92,7 @@ module Datapath (
     IDEXReg id_ex_reg(clk, reset, id_ex_flush, Rs_a_D, Rs_a_E, Rt_a_D, Rt_a_E, Rd_a_D, Rd_a_E,
                       Rs_data, Rs_data_E, Rt_data, Rt_data_E, immediateD, immediateE,
                       ALUSrcD, ALUSrcE, ALUControlD, ALUControlE, RegDstD, RegDstE,
-                      MemWriteD, MemWriteE, MemToRegD, MemToRegE, RegWriteD, RegWriteE);
+                      MemWriteD, MemWriteE, MemToRegD, MemToRegE, RegWriteD, RegWriteE, LoadByteD, LoadByteE);
 
     
     wire [4:0] write_reg_E;
@@ -121,9 +123,10 @@ module Datapath (
     wire MemWriteM;
     wire MemToRegM;
     wire RegWriteM;
+    wire [1:0] LoadByteM;
     EXMEMReg ex_mem_reg(clk, reset, 1'b0, aluoutE, aluoutM, WriteDataE, WriteDataM,
                         write_reg_E, write_reg_M, MemWriteE, MemWriteM, MemToRegE, MemToRegM,
-                        RegWriteE, RegWriteM);
+                        RegWriteE, RegWriteM, LoadByteE, LoadByteM);
 
 
     wire LoadStore;
@@ -137,10 +140,20 @@ module Datapath (
     wire [31:0] aluoutW;
     wire [31:0] ReadDataW;
     wire MemToRegW;
+    wire [1:0] LoadByteW;
     MEMWBReg mem_wb_reg(clk, reset, 1'b0, aluoutM, aluoutW, readdata, ReadDataW, write_reg_M, write_reg_W,
-                        MemToRegM, MemToRegW, RegWriteM, RegWriteW);
+                        MemToRegM, MemToRegW, RegWriteM, RegWriteW, LoadByteM, LoadByteW);
 
-    MUX2to1 #(32) rwm(aluoutW, ReadDataW, MemToRegW, resultW);
+    wire [31:0] Byte;
+    wire [31:0] UByte;
+    wire [31:0] ByteOrWord;
+
+    assign Byte = {{24{ReadDataW[7]}}, ReadDataW[7:0]};
+    assign UByte = {24'b0, ReadDataW[7:0]};
+
+    MUX3to1 bow(ReadDataW, Byte, UByte, LoadByteW, ByteOrWord);
+
+    MUX2to1 #(32) rwm(aluoutW, ByteOrWord, MemToRegW, resultW);
 
     // hazard unit
 
